@@ -1,14 +1,14 @@
 export const siteConfig = {
   name: 'Bahrain Theater Union',
   logo: '/logo.jpeg',
-  youtubeUrl: 'https://www.youtube.com/',
-  instagramUrl: 'https://www.instagram.com/',
-  featuredVideoEmbed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  youtubeUrl: 'https://www.youtube.com/@BTU411',
+  instagramUrl: 'https://www.instagram.com/bahrain_theater_union/?hl=en',
+  featuredVideoEmbed: 'https://youtu.be/gaAx7hnrNF8?si=UCmJOR8NXPwZHQwm',
   contact: {
-    email: 'info@bahrain-theater-union.bh',
+    email: 'info@bahraintheaterunion.com',
     phone: '+973 1234 5678',
     address: 'Manama, Kingdom of Bahrain',
-    website: 'www.bahrain-theater-union.bh'
+    website: 'www.bahraintheaterunion.com'
   },
   members: [
     { name: 'Ibrahim Almarzooq', role: 'President', initials: 'IA' },
