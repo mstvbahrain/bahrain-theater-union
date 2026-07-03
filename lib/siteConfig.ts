@@ -5,7 +5,7 @@ export const siteConfig = {
   // Replace these with the official social links when ready.
   youtubeUrl: 'https://www.youtube.com/@BTU411',
   instagramUrl: 'https://www.instagram.com/bahrain_theater_union/?hl=en',
-  featuredVideoEmbed: 'https://www.youtube.com/embed/gaAx7hnrNF8&t=7s',
+  featuredVideoEmbed: 'https://www.youtube.com/embed/gaAx7hnrNF8?start=7',
 
   contact: {
     email: 'info@bahrain-theater-union.bh',
