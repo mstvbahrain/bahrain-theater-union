@@ -1,22 +1,35 @@
+import Image from 'next/image';
 import { siteConfig } from '@/lib/siteConfig';
 
 export default function MembersSection() {
   return (
-    <section className="bg-softCream px-5 py-20" id="members">
-      <div className="mx-auto max-w-7xl">
-        <div className="text-center">
-          <p className="text-sm uppercase tracking-[0.3em] text-gold">Current Members</p>
-          <h2 className="mt-3 font-heading text-4xl text-black md:text-5xl">The People Behind The Union</h2>
-          <div className="mx-auto gold-line" />
+    <section className="bg-softCream px-5 py-16" id="members">
+      <div className="mx-auto max-w-[1500px]">
+        <div className="flex items-center justify-center gap-6 text-center">
+          <span className="hidden h-px w-16 bg-gold md:block" />
+          <h2 className="font-heading text-3xl uppercase tracking-[0.08em] text-black md:text-4xl">Current Members</h2>
+          <span className="hidden h-px w-16 bg-gold md:block" />
         </div>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-9">
           {siteConfig.members.map((member) => (
-            <article key={member.name} className="rounded-3xl bg-white p-5 text-center shadow-md transition hover:-translate-y-2 hover:shadow-luxury">
-              <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-oliveDark to-gold font-heading text-3xl text-white shadow-inner">
-                {member.initials}
+            <article
+              key={member.image}
+              className="group overflow-hidden rounded-xl border border-black/5 bg-white text-center shadow-md transition duration-300 hover:-translate-y-2 hover:shadow-luxury"
+            >
+              <div className="relative h-44 w-full overflow-hidden bg-neutral-200">
+                <Image
+                  src={member.image}
+                  alt={`${member.name} profile photo`}
+                  fill
+                  sizes="(min-width: 1280px) 11vw, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                  className="object-cover object-center transition duration-500 group-hover:scale-105"
+                />
               </div>
-              <h3 className="mt-5 font-heading text-xl text-black">{member.name}</h3>
-              <p className="mt-1 text-sm uppercase tracking-[0.15em] text-gold">{member.role}</p>
+              <div className="px-3 py-4">
+                <h3 className="text-sm font-bold text-black">{member.name}</h3>
+                <p className="mt-1 text-xs font-medium text-gold">{member.role}</p>
+              </div>
             </article>
           ))}
         </div>
