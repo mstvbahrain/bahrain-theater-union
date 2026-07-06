@@ -9,7 +9,7 @@ export const siteConfig = {
 
   contact: {
     email: 'info@bahrain-theater-union.bh',
-    phone: '+973 1234 5678',
+    phone: '+973 37555001',
     address: 'Manama, Kingdom of Bahrain',
     website: 'www.bahrain-theater-union.bh'
   },
