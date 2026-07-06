@@ -8,7 +8,7 @@ export const siteConfig = {
   featuredVideoEmbed: 'https://www.youtube.com/embed/gaAx7hnrNF8?start=7',
 
   contact: {
-    email: 'info@bahrain-theater-union.bh',
+    email: 'bahraintheaterunion@gmail.com',
     phone: '+973 37555001',
     address: 'Manama, Kingdom of Bahrain',
     website: 'www.bahrain-theater-union.bh'
