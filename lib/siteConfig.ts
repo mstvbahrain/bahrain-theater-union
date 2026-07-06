@@ -10,7 +10,7 @@ export const siteConfig = {
   contact: {
     email: 'bahraintheaterunion@gmail.com',
     phone: '+973 37555001',
-    address: 'Manama, Kingdom of Bahrain',
+    address: 'Unit 22 Building 643 Rd No 3625, Manama, Al Adliya, Capital Governance, Kingdom of Bahrain',
     website: 'www.bahrain-theater-union.bh'
   },
 
