@@ -12,8 +12,8 @@ const config: Config = {
         softCream: '#EFE7D7'
       },
       fontFamily: {
-        heading: ['var(--font-playfair)', 'serif'],
-        body: ['var(--font-inter)', 'sans-serif']
+        heading: ['Tahoma', 'Arial', 'sans-serif'],
+        body: ['Tahoma', 'Arial', 'sans-serif']
       },
       boxShadow: {
         luxury: '0 20px 55px rgba(0,0,0,0.22)'

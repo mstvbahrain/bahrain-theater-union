@@ -7,8 +7,8 @@ export default function ContactPage() {
     <main>
       <Navbar />
       <div className="bg-oliveDark px-5 pb-16 pt-36 text-center text-white">
-        <p className="text-sm uppercase tracking-[0.3em] text-gold">Contact</p>
-        <h1 className="mt-4 font-heading text-5xl md:text-7xl">Contact Us</h1>
+        <p className="text-sm font-semibold text-gold">التواصل</p>
+        <h1 className="mt-4 font-heading text-5xl md:text-7xl">تواصل معنا</h1>
       </div>
       <ContactSection />
       <Footer />
