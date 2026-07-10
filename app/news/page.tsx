@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import NewsContent from '@/components/NewsContent';
 
 export default function NewsPage() {
   return (
@@ -13,6 +14,7 @@ export default function NewsPage() {
           <p className="mt-8 text-lg leading-9 text-neutral-700">
             تابعوا آخر أخبار الاتحاد البحريني للمسرح، وإعلاناته، ومشاركاته، والمستجدات المتعلقة بالحركة المسرحية في مملكة البحرين.
           </p>
+          <NewsContent />
         </div>
       </section>
       <Footer />

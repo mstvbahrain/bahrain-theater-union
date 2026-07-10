@@ -34,6 +34,9 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="hidden items-center gap-3 xl:flex">
+          <Link href="/admin" className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-black transition hover:bg-white">
+            دخول الإدارة
+          </Link>
           <a href={siteConfig.youtubeUrl} className="rounded-full border border-white/15 p-2 text-white transition hover:border-gold hover:text-gold" aria-label="YouTube"><Youtube size={18} /></a>
           <a href={siteConfig.instagramUrl} className="rounded-full border border-white/15 p-2 text-white transition hover:border-gold hover:text-gold" aria-label="Instagram"><Instagram size={18} /></a>
         </div>
@@ -45,6 +48,9 @@ export default function Navbar() {
         <div className="border-t border-white/10 bg-black px-5 py-5 lg:hidden">
           <div className="flex flex-col gap-4">
             {links.map((link) => <Link onClick={() => setOpen(false)} key={link.href} href={link.href} className="text-white/80">{link.label}</Link>)}
+            <Link onClick={() => setOpen(false)} href="/admin" className="mt-2 rounded-full bg-gold px-5 py-3 text-center font-semibold text-black">
+              دخول الإدارة
+            </Link>
           </div>
         </div>
       )}

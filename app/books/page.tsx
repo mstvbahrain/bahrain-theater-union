@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import BooksContent from '@/components/BooksContent';
 
 export default function BooksPage() {
   return (
@@ -13,6 +14,7 @@ export default function BooksPage() {
           <p className="mt-8 text-lg leading-9 text-neutral-700">
             قسم مخصص للكتب والإصدارات المسرحية، والدراسات، والنصوص، والمواد المعرفية التي تثري المشهد المسرحي وتوثق تجربته.
           </p>
+          <BooksContent />
         </div>
       </section>
       <Footer />
