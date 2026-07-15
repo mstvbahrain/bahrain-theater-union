@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
+import HomeUpdatesSlider from '@/components/HomeUpdatesSlider';
 import FeaturedSocialVideo from '@/components/FeaturedSocialVideo';
 import MembersSection from '@/components/MembersSection';
 import AboutPreview from '@/components/AboutPreview';
@@ -11,6 +12,7 @@ export default function Home() {
     <main>
       <Navbar />
       <Hero />
+      <HomeUpdatesSlider />
       <FeaturedSocialVideo />
       <MembersSection />
       <AboutPreview />

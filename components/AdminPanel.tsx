@@ -1,8 +1,9 @@
 'use client';
 
-import { BookOpen, CalendarDays, Drama, LogIn, LogOut, Newspaper, Plus, Trash2, Upload } from 'lucide-react';
+import { BookOpen, CalendarDays, Drama, LogIn, LogOut, Newspaper, Plus, Trash2, Upload, UsersRound } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
-import { BookItem, EventItem, NewsItem, PlayItem, storageKeys } from '@/lib/contentStorage';
+import { BookItem, EventItem, HomeUpdateItem, MemberItem, NewsItem, PlayItem, memberGroupOptions, storageKeys } from '@/lib/contentStorage';
+import { siteConfig } from '@/lib/siteConfig';
 
 function readImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -13,15 +14,23 @@ function readImage(file: File): Promise<string> {
   });
 }
 
+const defaultMembers: MemberItem[] = siteConfig.members.map((member) => ({
+  id: member.image,
+  ...member
+}));
+
 export default function AdminPanel() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [books, setBooks] = useState<BookItem[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [homeUpdates, setHomeUpdates] = useState<HomeUpdateItem[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [plays, setPlays] = useState<PlayItem[]>([]);
+  const [members, setMembers] = useState<MemberItem[]>(defaultMembers);
   const [bookThumbnail, setBookThumbnail] = useState('');
   const [newsImage, setNewsImage] = useState('');
+  const [homeUpdateImage, setHomeUpdateImage] = useState('');
   const [eventImage, setEventImage] = useState('');
   const [playImage, setPlayImage] = useState('');
 
@@ -29,8 +38,10 @@ export default function AdminPanel() {
     setLoggedIn(window.sessionStorage.getItem(storageKeys.adminSession) === 'true');
     setBooks(JSON.parse(window.localStorage.getItem(storageKeys.books) || '[]'));
     setNews(JSON.parse(window.localStorage.getItem(storageKeys.news) || '[]'));
+    setHomeUpdates(JSON.parse(window.localStorage.getItem(storageKeys.homeUpdates) || '[]'));
     setEvents(JSON.parse(window.localStorage.getItem(storageKeys.events) || '[]'));
     setPlays(JSON.parse(window.localStorage.getItem(storageKeys.plays) || '[]'));
+    setMembers(JSON.parse(window.localStorage.getItem(storageKeys.members) || JSON.stringify(defaultMembers)));
   }, []);
 
   function saveBooks(nextBooks: BookItem[]) {
@@ -43,6 +54,11 @@ export default function AdminPanel() {
     window.localStorage.setItem(storageKeys.news, JSON.stringify(nextNews));
   }
 
+  function saveHomeUpdates(nextHomeUpdates: HomeUpdateItem[]) {
+    setHomeUpdates(nextHomeUpdates);
+    window.localStorage.setItem(storageKeys.homeUpdates, JSON.stringify(nextHomeUpdates));
+  }
+
   function saveEvents(nextEvents: EventItem[]) {
     setEvents(nextEvents);
     window.localStorage.setItem(storageKeys.events, JSON.stringify(nextEvents));
@@ -51,6 +67,20 @@ export default function AdminPanel() {
   function savePlays(nextPlays: PlayItem[]) {
     setPlays(nextPlays);
     window.localStorage.setItem(storageKeys.plays, JSON.stringify(nextPlays));
+  }
+
+  function saveMembers(nextMembers: MemberItem[]) {
+    setMembers(nextMembers);
+    window.localStorage.setItem(storageKeys.members, JSON.stringify(nextMembers));
+  }
+
+  function updateMember(memberId: string, changes: Partial<MemberItem>) {
+    saveMembers(members.map((member) => (member.id === memberId ? { ...member, ...changes } : member)));
+  }
+
+  async function updateMemberImage(memberId: string, file?: File) {
+    if (!file) return;
+    updateMember(memberId, { image: await readImage(file) });
   }
 
   async function hashText(value: string) {
@@ -115,6 +145,23 @@ export default function AdminPanel() {
     saveNews([nextNews, ...news]);
     event.currentTarget.reset();
     setNewsImage('');
+  }
+
+  function addHomeUpdate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const nextHomeUpdate: HomeUpdateItem = {
+      id: crypto.randomUUID(),
+      title: String(form.get('title') || ''),
+      body: String(form.get('body') || ''),
+      image: homeUpdateImage,
+      link: String(form.get('link') || ''),
+      createdAt: new Date().toISOString()
+    };
+
+    saveHomeUpdates([nextHomeUpdate, ...homeUpdates]);
+    event.currentTarget.reset();
+    setHomeUpdateImage('');
   }
 
   function addEvent(event: FormEvent<HTMLFormElement>) {
@@ -199,6 +246,39 @@ export default function AdminPanel() {
             <LogOut size={18} />
           </button>
         </div>
+
+        <form onSubmit={addHomeUpdate} className="mt-10 rounded-2xl bg-white p-6 shadow-md">
+          <div className="flex items-center gap-3">
+            <Newspaper className="text-gold" size={30} />
+            <div>
+              <p className="text-sm font-semibold text-gold">الصفحة الرئيسية</p>
+              <h2 className="font-heading text-3xl text-black">إضافة تحديث للعرض المتحرك</h2>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <input name="title" required placeholder="عنوان التحديث" className="w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold" />
+            <input name="link" type="url" placeholder="رابط اختياري" className="w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold" dir="ltr" />
+            <textarea name="body" required placeholder="نص التحديث" rows={6} className="w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold lg:col-span-2" />
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-black/20 px-4 py-5 text-neutral-700 transition hover:border-gold">
+              <Upload size={18} />
+              تحميل صورة التحديث
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
+                  if (file) setHomeUpdateImage(await readImage(file));
+                }}
+              />
+            </label>
+            {homeUpdateImage ? <img src={homeUpdateImage} alt="معاينة صورة تحديث الصفحة الرئيسية" className="h-40 w-full rounded-xl object-cover" /> : null}
+          </div>
+          <button className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 font-semibold text-black transition hover:bg-black hover:text-white md:w-auto">
+            نشر في الصفحة الرئيسية
+            <Plus size={18} />
+          </button>
+        </form>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <form onSubmit={addBook} className="rounded-2xl bg-white p-6 shadow-md">
@@ -323,7 +403,78 @@ export default function AdminPanel() {
           </form>
         </div>
 
+        <section className="mt-10 rounded-2xl bg-white p-6 shadow-md">
+          <div className="flex items-center gap-3">
+            <UsersRound className="text-gold" size={30} />
+            <div>
+              <p className="text-sm font-semibold text-gold">الأعضاء الحاليون</p>
+              <h2 className="font-heading text-3xl text-black">تعديل الصور والأسماء والمناصب</h2>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
+            {members.map((member) => (
+              <article key={member.id} className="rounded-2xl bg-softCream p-4">
+                <img src={member.image} alt={`صورة ${member.name}`} className="h-48 w-full rounded-xl bg-white object-cover object-center" />
+                <div className="mt-4 space-y-3">
+                  <input
+                    value={member.name}
+                    onChange={(event) => updateMember(member.id, { name: event.target.value })}
+                    placeholder="اسم العضو"
+                    className="w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold"
+                  />
+                  <input
+                    value={member.role}
+                    onChange={(event) => updateMember(member.id, { role: event.target.value })}
+                    placeholder="المنصب"
+                    className="w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold"
+                  />
+                  <select
+                    value={member.group}
+                    onChange={(event) => updateMember(member.id, { group: event.target.value })}
+                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:border-gold"
+                  >
+                    {memberGroupOptions.map((group) => (
+                      <option key={group} value={group}>
+                        {group}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-black/20 bg-white px-4 py-4 text-neutral-700 transition hover:border-gold">
+                    <Upload size={18} />
+                    تغيير الصورة
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (event) => {
+                        await updateMemberImage(member.id, event.target.files?.[0]);
+                        event.currentTarget.value = '';
+                      }}
+                    />
+                  </label>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <section className="rounded-2xl bg-white p-6 shadow-md">
+            <h2 className="font-heading text-2xl text-black">تحديثات الصفحة الرئيسية</h2>
+            <div className="mt-5 space-y-3">
+              {homeUpdates.length === 0 ? <p className="text-neutral-600">لا توجد تحديثات منشورة في الصفحة الرئيسية حالياً.</p> : null}
+              {homeUpdates.map((item) => (
+                <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-softCream p-3">
+                  <span className="font-semibold text-black">{item.title}</span>
+                  <button onClick={() => saveHomeUpdates(homeUpdates.filter((record) => record.id !== item.id))} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف تحديث الصفحة الرئيسية">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="rounded-2xl bg-white p-6 shadow-md">
             <h2 className="font-heading text-2xl text-black">الكتب المنشورة</h2>
             <div className="mt-5 space-y-3">
