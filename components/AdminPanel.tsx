@@ -20,6 +20,24 @@ const defaultMembers: MemberItem[] = siteConfig.members.map((member) => ({
   ...member
 }));
 
+function getLoginErrorMessage(message: string) {
+  const normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.includes('email not confirmed')) {
+    return 'الحساب غير مؤكد في Supabase. افتح Authentication ثم Users وتأكد من تأكيد البريد.';
+  }
+
+  if (normalizedMessage.includes('invalid login credentials')) {
+    return 'البريد الإلكتروني أو كلمة المرور غير صحيحة في Supabase.';
+  }
+
+  if (normalizedMessage.includes('supabase is not configured')) {
+    return 'لم يتم ربط Supabase بعد. تأكد من إضافة متغيرات البيئة ثم إعادة النشر.';
+  }
+
+  return `تعذر تسجيل الدخول: ${message}`;
+}
+
 export default function AdminPanel() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginError, setLoginError] = useState('');
@@ -112,7 +130,7 @@ export default function AdminPanel() {
     if (isSupabaseConfigured) {
       const { error } = await signInAdmin(username, password);
       if (error) {
-        setLoginError('بيانات الدخول غير صحيحة.');
+        setLoginError(getLoginErrorMessage(error.message));
         return;
       }
 
@@ -266,6 +284,9 @@ export default function AdminPanel() {
               <input name="password" type="password" required className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold" />
             </label>
             {loginError ? <p className="text-sm font-semibold text-red-700">{loginError}</p> : null}
+            <p className="rounded-xl bg-softCream px-4 py-3 text-sm leading-6 text-neutral-600">
+              {isSupabaseConfigured ? 'Supabase متصل. استخدم بريد وكلمة مرور المستخدم الموجود في Supabase Authentication.' : 'Supabase غير متصل على هذا النشر. سيتم استخدام الدخول التجريبي المحلي.'}
+            </p>
             <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 font-semibold text-black transition hover:bg-black hover:text-white">
               دخول
               <LogIn size={18} />
