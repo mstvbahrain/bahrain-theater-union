@@ -3,9 +3,9 @@ export const siteConfig = {
   logo: '/logo.jpeg',
 
   // Replace these with the official social links when ready.
-  youtubeUrl: 'https://www.youtube.com/',
-  instagramUrl: 'https://www.instagram.com/',
-  featuredVideoEmbed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+  youtubeUrl: 'https://www.youtube.com/@BTU411',
+  instagramUrl: 'https://www.instagram.com/bahrain_theater_union/?hl=en',
+  featuredVideoEmbed: 'https://www.youtube.com/embed/gaAx7hnrNF8',
 
   contact: {
     email: 'bhunionpwa@gmail.com',
