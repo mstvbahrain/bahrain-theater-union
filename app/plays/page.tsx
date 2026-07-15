@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import PlaysContent from '@/components/PlaysContent';
 
 export default function PlaysPage() {
   return (
@@ -13,6 +14,7 @@ export default function PlaysPage() {
           <p className="mt-8 text-lg leading-9 text-neutral-700">
             مساحة لعرض المسرحيات والإنتاجات المسرحية التي يشارك فيها الاتحاد أو يدعمها، مع إبراز الأعمال الجديدة والتجارب الإبداعية في البحرين.
           </p>
+          <PlaysContent />
         </div>
       </section>
       <Footer />

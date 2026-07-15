@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import EventsContent from '@/components/EventsContent';
 
 export default function EventsPage() {
   return (
@@ -13,6 +14,7 @@ export default function EventsPage() {
           <p className="mt-8 text-lg leading-9 text-neutral-700">
             هنا تُعرض فعاليات الاتحاد، والورش، والندوات، والعروض، والأنشطة الثقافية التي تجمع المسرحيين والجمهور.
           </p>
+          <EventsContent />
         </div>
       </section>
       <Footer />
