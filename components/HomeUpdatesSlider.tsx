@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Newspaper } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { HomeUpdateItem, storageKeys } from '@/lib/contentStorage';
+import { fetchContent } from '@/lib/supabaseContent';
 
 export default function HomeUpdatesSlider() {
   const [updates, setUpdates] = useState<HomeUpdateItem[]>([]);
@@ -11,7 +12,7 @@ export default function HomeUpdatesSlider() {
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKeys.homeUpdates);
-    setUpdates(saved ? JSON.parse(saved) : []);
+    fetchContent<HomeUpdateItem>('homeUpdates', saved ? JSON.parse(saved) : []).then(setUpdates);
   }, []);
 
   useEffect(() => {

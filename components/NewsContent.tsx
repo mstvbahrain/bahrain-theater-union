@@ -3,13 +3,14 @@
 import { Newspaper } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NewsItem, storageKeys } from '@/lib/contentStorage';
+import { fetchContent } from '@/lib/supabaseContent';
 
 export default function NewsContent() {
   const [news, setNews] = useState<NewsItem[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKeys.news);
-    setNews(saved ? JSON.parse(saved) : []);
+    fetchContent<NewsItem>('news', saved ? JSON.parse(saved) : []).then(setNews);
   }, []);
 
   return (
@@ -38,4 +39,3 @@ export default function NewsContent() {
     </div>
   );
 }
-

@@ -3,13 +3,14 @@
 import { CalendarDays } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { EventItem, storageKeys } from '@/lib/contentStorage';
+import { fetchContent } from '@/lib/supabaseContent';
 
 export default function EventsContent() {
   const [events, setEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKeys.events);
-    setEvents(saved ? JSON.parse(saved) : []);
+    fetchContent<EventItem>('events', saved ? JSON.parse(saved) : []).then(setEvents);
   }, []);
 
   return (
@@ -39,4 +40,3 @@ export default function EventsContent() {
     </div>
   );
 }
-

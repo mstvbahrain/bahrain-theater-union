@@ -4,6 +4,7 @@ import { BookOpen, CalendarDays, Drama, LogIn, LogOut, Newspaper, Plus, Trash2, 
 import { FormEvent, useEffect, useState } from 'react';
 import { BookItem, EventItem, HomeUpdateItem, MemberItem, NewsItem, PlayItem, memberGroupOptions, storageKeys } from '@/lib/contentStorage';
 import { siteConfig } from '@/lib/siteConfig';
+import { deleteContent, fetchContent, hasAdminSession, insertContent, isSupabaseConfigured, signInAdmin, signOutAdmin, updateContent, uploadContentImage } from '@/lib/supabaseContent';
 
 function readImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -35,13 +36,24 @@ export default function AdminPanel() {
   const [playImage, setPlayImage] = useState('');
 
   useEffect(() => {
-    setLoggedIn(window.sessionStorage.getItem(storageKeys.adminSession) === 'true');
-    setBooks(JSON.parse(window.localStorage.getItem(storageKeys.books) || '[]'));
-    setNews(JSON.parse(window.localStorage.getItem(storageKeys.news) || '[]'));
-    setHomeUpdates(JSON.parse(window.localStorage.getItem(storageKeys.homeUpdates) || '[]'));
-    setEvents(JSON.parse(window.localStorage.getItem(storageKeys.events) || '[]'));
-    setPlays(JSON.parse(window.localStorage.getItem(storageKeys.plays) || '[]'));
-    setMembers(JSON.parse(window.localStorage.getItem(storageKeys.members) || JSON.stringify(defaultMembers)));
+    async function loadAdminData() {
+      const localBooks = JSON.parse(window.localStorage.getItem(storageKeys.books) || '[]');
+      const localNews = JSON.parse(window.localStorage.getItem(storageKeys.news) || '[]');
+      const localHomeUpdates = JSON.parse(window.localStorage.getItem(storageKeys.homeUpdates) || '[]');
+      const localEvents = JSON.parse(window.localStorage.getItem(storageKeys.events) || '[]');
+      const localPlays = JSON.parse(window.localStorage.getItem(storageKeys.plays) || '[]');
+      const localMembers = JSON.parse(window.localStorage.getItem(storageKeys.members) || JSON.stringify(defaultMembers));
+
+      setLoggedIn(isSupabaseConfigured ? await hasAdminSession() : window.sessionStorage.getItem(storageKeys.adminSession) === 'true');
+      setBooks(await fetchContent<BookItem>('books', localBooks));
+      setNews(await fetchContent<NewsItem>('news', localNews));
+      setHomeUpdates(await fetchContent<HomeUpdateItem>('homeUpdates', localHomeUpdates));
+      setEvents(await fetchContent<EventItem>('events', localEvents));
+      setPlays(await fetchContent<PlayItem>('plays', localPlays));
+      setMembers(await fetchContent<MemberItem>('members', localMembers));
+    }
+
+    loadAdminData();
   }, []);
 
   function saveBooks(nextBooks: BookItem[]) {
@@ -74,13 +86,15 @@ export default function AdminPanel() {
     window.localStorage.setItem(storageKeys.members, JSON.stringify(nextMembers));
   }
 
-  function updateMember(memberId: string, changes: Partial<MemberItem>) {
-    saveMembers(members.map((member) => (member.id === memberId ? { ...member, ...changes } : member)));
+  async function updateMember(memberId: string, changes: Partial<MemberItem>) {
+    const nextMembers = members.map((member) => (member.id === memberId ? { ...member, ...changes } : member));
+    saveMembers(nextMembers);
+    if (isSupabaseConfigured) await updateContent<MemberItem>('members', memberId, changes);
   }
 
   async function updateMemberImage(memberId: string, file?: File) {
     if (!file) return;
-    updateMember(memberId, { image: await readImage(file) });
+    await updateMember(memberId, { image: await uploadContentImage('members', file) });
   }
 
   async function hashText(value: string) {
@@ -94,6 +108,19 @@ export default function AdminPanel() {
     const form = new FormData(event.currentTarget);
     const username = String(form.get('username') || '');
     const password = String(form.get('password') || '');
+
+    if (isSupabaseConfigured) {
+      const { error } = await signInAdmin(username, password);
+      if (error) {
+        setLoginError('بيانات الدخول غير صحيحة.');
+        return;
+      }
+
+      setLoggedIn(true);
+      setLoginError('');
+      return;
+    }
+
     const usernameHash = await hashText(username);
     const passwordHash = await hashText(password);
 
@@ -110,12 +137,13 @@ export default function AdminPanel() {
     setLoginError('بيانات الدخول غير صحيحة.');
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    await signOutAdmin();
     window.sessionStorage.removeItem(storageKeys.adminSession);
     setLoggedIn(false);
   }
 
-  function addBook(event: FormEvent<HTMLFormElement>) {
+  async function addBook(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextBook: BookItem = {
@@ -126,12 +154,13 @@ export default function AdminPanel() {
       createdAt: new Date().toISOString()
     };
 
-    saveBooks([nextBook, ...books]);
+    const savedBook = await insertContent<BookItem>('books', nextBook);
+    saveBooks([savedBook, ...books]);
     event.currentTarget.reset();
     setBookThumbnail('');
   }
 
-  function addNews(event: FormEvent<HTMLFormElement>) {
+  async function addNews(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextNews: NewsItem = {
@@ -142,12 +171,13 @@ export default function AdminPanel() {
       createdAt: new Date().toISOString()
     };
 
-    saveNews([nextNews, ...news]);
+    const savedNews = await insertContent<NewsItem>('news', nextNews);
+    saveNews([savedNews, ...news]);
     event.currentTarget.reset();
     setNewsImage('');
   }
 
-  function addHomeUpdate(event: FormEvent<HTMLFormElement>) {
+  async function addHomeUpdate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextHomeUpdate: HomeUpdateItem = {
@@ -159,12 +189,13 @@ export default function AdminPanel() {
       createdAt: new Date().toISOString()
     };
 
-    saveHomeUpdates([nextHomeUpdate, ...homeUpdates]);
+    const savedHomeUpdate = await insertContent<HomeUpdateItem>('homeUpdates', nextHomeUpdate);
+    saveHomeUpdates([savedHomeUpdate, ...homeUpdates]);
     event.currentTarget.reset();
     setHomeUpdateImage('');
   }
 
-  function addEvent(event: FormEvent<HTMLFormElement>) {
+  async function addEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextEvent: EventItem = {
@@ -177,12 +208,13 @@ export default function AdminPanel() {
       createdAt: new Date().toISOString()
     };
 
-    saveEvents([nextEvent, ...events]);
+    const savedEvent = await insertContent<EventItem>('events', nextEvent);
+    saveEvents([savedEvent, ...events]);
     event.currentTarget.reset();
     setEventImage('');
   }
 
-  function addPlay(event: FormEvent<HTMLFormElement>) {
+  async function addPlay(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const nextPlay: PlayItem = {
@@ -194,9 +226,20 @@ export default function AdminPanel() {
       createdAt: new Date().toISOString()
     };
 
-    savePlays([nextPlay, ...plays]);
+    const savedPlay = await insertContent<PlayItem>('plays', nextPlay);
+    savePlays([savedPlay, ...plays]);
     event.currentTarget.reset();
     setPlayImage('');
+  }
+
+  async function removeRecord(table: 'books' | 'news' | 'homeUpdates' | 'events' | 'plays', id: string) {
+    await deleteContent(table, id);
+
+    if (table === 'books') saveBooks(books.filter((item) => item.id !== id));
+    if (table === 'news') saveNews(news.filter((item) => item.id !== id));
+    if (table === 'homeUpdates') saveHomeUpdates(homeUpdates.filter((item) => item.id !== id));
+    if (table === 'events') saveEvents(events.filter((item) => item.id !== id));
+    if (table === 'plays') savePlays(plays.filter((item) => item.id !== id));
   }
 
   if (!loggedIn) {
@@ -215,8 +258,8 @@ export default function AdminPanel() {
 
           <form onSubmit={handleLogin} className="mt-8 space-y-4">
             <label className="block">
-              <span className="text-sm font-semibold text-neutral-700">اسم المستخدم</span>
-              <input name="username" required className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold" />
+              <span className="text-sm font-semibold text-neutral-700">{isSupabaseConfigured ? 'البريد الإلكتروني' : 'اسم المستخدم'}</span>
+              <input name="username" required type={isSupabaseConfigured ? 'email' : 'text'} className="mt-2 w-full rounded-xl border border-black/10 px-4 py-3 outline-none focus:border-gold" dir="ltr" />
             </label>
             <label className="block">
               <span className="text-sm font-semibold text-neutral-700">كلمة المرور</span>
@@ -266,11 +309,11 @@ export default function AdminPanel() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  if (file) setHomeUpdateImage(await readImage(file));
-                }}
-              />
+                  onChange={async (event) => {
+                    const file = event.target.files?.[0];
+                    if (file) setHomeUpdateImage(await uploadContentImage('home-updates', file));
+                  }}
+                />
             </label>
             {homeUpdateImage ? <img src={homeUpdateImage} alt="معاينة صورة تحديث الصفحة الرئيسية" className="h-40 w-full rounded-xl object-cover" /> : null}
           </div>
@@ -298,7 +341,7 @@ export default function AdminPanel() {
                   className="hidden"
                   onChange={async (event) => {
                     const file = event.target.files?.[0];
-                    if (file) setBookThumbnail(await readImage(file));
+                    if (file) setBookThumbnail(await uploadContentImage('books', file));
                   }}
                 />
               </label>
@@ -327,7 +370,7 @@ export default function AdminPanel() {
                   className="hidden"
                   onChange={async (event) => {
                     const file = event.target.files?.[0];
-                    if (file) setNewsImage(await readImage(file));
+                    if (file) setNewsImage(await uploadContentImage('news', file));
                   }}
                 />
               </label>
@@ -360,7 +403,7 @@ export default function AdminPanel() {
                   className="hidden"
                   onChange={async (event) => {
                     const file = event.target.files?.[0];
-                    if (file) setEventImage(await readImage(file));
+                    if (file) setEventImage(await uploadContentImage('events', file));
                   }}
                 />
               </label>
@@ -390,7 +433,7 @@ export default function AdminPanel() {
                   className="hidden"
                   onChange={async (event) => {
                     const file = event.target.files?.[0];
-                    if (file) setPlayImage(await readImage(file));
+                    if (file) setPlayImage(await uploadContentImage('plays', file));
                   }}
                 />
               </label>
@@ -467,7 +510,7 @@ export default function AdminPanel() {
               {homeUpdates.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-softCream p-3">
                   <span className="font-semibold text-black">{item.title}</span>
-                  <button onClick={() => saveHomeUpdates(homeUpdates.filter((record) => record.id !== item.id))} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف تحديث الصفحة الرئيسية">
+                  <button onClick={() => removeRecord('homeUpdates', item.id)} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف تحديث الصفحة الرئيسية">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -482,7 +525,7 @@ export default function AdminPanel() {
               {books.map((book) => (
                 <div key={book.id} className="flex items-center justify-between gap-3 rounded-xl bg-softCream p-3">
                   <span className="font-semibold text-black">{book.title}</span>
-                  <button onClick={() => saveBooks(books.filter((item) => item.id !== book.id))} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف الكتاب">
+                  <button onClick={() => removeRecord('books', book.id)} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف الكتاب">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -497,7 +540,7 @@ export default function AdminPanel() {
               {news.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-softCream p-3">
                   <span className="font-semibold text-black">{item.title}</span>
-                  <button onClick={() => saveNews(news.filter((record) => record.id !== item.id))} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف الخبر">
+                  <button onClick={() => removeRecord('news', item.id)} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف الخبر">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -512,7 +555,7 @@ export default function AdminPanel() {
               {events.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-softCream p-3">
                   <span className="font-semibold text-black">{item.title}</span>
-                  <button onClick={() => saveEvents(events.filter((record) => record.id !== item.id))} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف الفعالية">
+                  <button onClick={() => removeRecord('events', item.id)} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف الفعالية">
                     <Trash2 size={18} />
                   </button>
                 </div>
@@ -527,7 +570,7 @@ export default function AdminPanel() {
               {plays.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-softCream p-3">
                   <span className="font-semibold text-black">{item.title}</span>
-                  <button onClick={() => savePlays(plays.filter((record) => record.id !== item.id))} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف المسرحية">
+                  <button onClick={() => removeRecord('plays', item.id)} className="rounded-full p-2 text-red-700 transition hover:bg-white" aria-label="حذف المسرحية">
                     <Trash2 size={18} />
                   </button>
                 </div>

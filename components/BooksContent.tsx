@@ -3,13 +3,14 @@
 import { BookOpen, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { BookItem, storageKeys } from '@/lib/contentStorage';
+import { fetchContent } from '@/lib/supabaseContent';
 
 export default function BooksContent() {
   const [books, setBooks] = useState<BookItem[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKeys.books);
-    setBooks(saved ? JSON.parse(saved) : []);
+    fetchContent<BookItem>('books', saved ? JSON.parse(saved) : []).then(setBooks);
   }, []);
 
   return (

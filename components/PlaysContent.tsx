@@ -3,13 +3,14 @@
 import { Drama, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PlayItem, storageKeys } from '@/lib/contentStorage';
+import { fetchContent } from '@/lib/supabaseContent';
 
 export default function PlaysContent() {
   const [plays, setPlays] = useState<PlayItem[]>([]);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKeys.plays);
-    setPlays(saved ? JSON.parse(saved) : []);
+    fetchContent<PlayItem>('plays', saved ? JSON.parse(saved) : []).then(setPlays);
   }, []);
 
   return (

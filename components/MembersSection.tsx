@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { MemberItem, memberGroupOptions, storageKeys } from '@/lib/contentStorage';
+import { fetchContent } from '@/lib/supabaseContent';
 import { siteConfig } from '@/lib/siteConfig';
 
 const groupDescriptions: Record<string, string> = {
@@ -51,9 +52,7 @@ export default function MembersSection() {
 
   useEffect(() => {
     const saved = window.localStorage.getItem(storageKeys.members);
-    if (saved) {
-      setMembers(JSON.parse(saved));
-    }
+    fetchContent<MemberItem>('members', saved ? JSON.parse(saved) : defaultMembers).then(setMembers);
   }, []);
 
   return (
